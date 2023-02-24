@@ -62,8 +62,11 @@ class Human(Agent):
         return False
 
 class Random(Agent):
+    def __init__(self, delay=0):
+        self.delay = delay
+
     def shoot(self, state):
-        time.sleep(0.5)
+        time.sleep(self.delay)
         if state.agents[state.turn, 2] > 0:
             if random.getrandbits(1):
                 return random.choice(state.moveStates())
@@ -71,3 +74,59 @@ class Random(Agent):
                 return random.choice(state.wallStates())
         return random.choice(state.moveStates())
 
+class Minimax(Agent):
+    def __init__(self, depth = 2):
+        self.depth = depth
+
+    def shoot(self, state):
+        bestMove = None
+        ## white is maximizing player
+        if state.turn:
+            ## maximizing
+            bestScore = -np.inf
+            children = state.possibleGameStates()
+            for i, child in enumerate(children):
+                print(f"Maximizing: child {i} / {len(children)}", end="\r")
+                score = self.minimax(child, 1)
+                if score > bestScore:
+                    bestScore = score
+                    bestMove = child
+        else:
+            ## minimizing
+            bestScore = np.inf
+            children = state.possibleGameStates()
+            for i, child in enumerate(children):
+                print(f"Minimizing: child {i} / {len(children)}", end="\r")
+                score = self.minimax(child, 1)
+                if score < bestScore:
+                    bestScore = score
+                    bestMove = child
+        return bestMove
+    
+    def minimax(self, state, depth, alpha = -np.inf, beta = np.inf):
+        if depth == self.depth:
+            return self.score(state)
+        bestScore = None
+        ## white is maximizing player
+        if state.turn:
+            ## maximizing
+            bestScore = -np.inf
+            for child in state.possibleGameStates():
+                score = self.minimax(child, depth+1, alpha, beta)
+                bestScore = max(score, bestScore)
+                alpha = max(alpha, bestScore)
+                if beta <= alpha:
+                    break
+        else:
+            ## minimizing
+            bestScore = np.inf
+            for child in state.possibleGameStates():
+                score = self.minimax(child, depth+1, alpha, beta)
+                bestScore = min(score, bestScore)
+                beta = min(beta, bestScore)
+                if beta <= alpha:
+                    break
+        return bestScore
+
+    def score(self, state):
+        return len(state.shortestPath(0)) - len(state.shortestPath(1))

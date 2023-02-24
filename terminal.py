@@ -144,8 +144,10 @@ def printBoard(state, possibleMoves = False):
         print()
 
 # state = GameState.newGame()
-white = Random()
-black = Random()
+# white = Random(delay=0.5)
+# black = Random(delay=0.5)
+white = Minimax()
+black = Random(delay=0.5)
 
 while True:
     # if isinstance(white, Human):
@@ -155,7 +157,7 @@ while True:
         break
     # if isinstance(black, Human):
     printGameState(state, True)
-    time.sleep(0.5)
+    # time.sleep(0.5)
     state = black.shoot(state)
     if state.checkVictory() >= 0:
         break
