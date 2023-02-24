@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>
+        Quoridor
+    </title>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+</head>
+
+<body>
+    <div class="credits">
+        <h1 style='margin:1rem auto auto auto'>JavaScript Quoridor</h1>
+        <h3 style='margin:auto'>Version 0.1</h3>
+
+        <button id="newGameButton">New Game</button>
+        <!-- <button id="pauseGameButton">Pause Game</button> -->
+        <!-- <button id="resumeGameButton" style='display: none'>Resume Game</button> -->
+
+        <div class="playerSelects">
+            <div class="player1">
+                <strong>White Player</strong> <br>
+                <input id='selectWhiteHuman' type="radio" name='white' value='0' checked>Human <br>
+                <input id='selectWhiteMinmax' type="radio" name='white' value='1'>Minmax; depth: <input placeholder='AI Depth' value='10' min='1' type="number" id="whiteMinmaxDepth" class='formControl'> <br>
+            </div>
+            <div class="player2">
+                <strong>Black Player</strong> <br>
+                <input id='selectBlackHuman' type="radio" name='black' value='0' checked>Human <br>
+                <input id='selectBlackMinmax' type="radio" name='black' value='1'>Minmax; depth: <input placeholder='Minmax Depth' value='10' min='1' type="number" id="blackMinmaxDepth" class='formControl'><br>
+                
+            </div>
+        </div>
+    </div>
+
+    <div class='container'>
+        <!-- <table><tbody id="snekBoard"></tbody></table> -->
+        <canvas id="topPlayer" width='830px' height='75px'></canvas>
+        <canvas id="gameCanvas" width='830px' height='830px'></canvas>
+        <canvas id="bottomPlayer" width='830px' height='75px'></canvas>
+    </div>
+
+    <div class="instructions">
+        <h4>Instructions</h4>
+        Arrow keys to move
+    </div>
+            
+    <style>
+        body {
+            margin: auto;
+            width: 50%;
+        }
+        #topPlayer {
+            border: 1px solid gray;
+            /* width: 750px; */
+            /* height: 75px; */
+        }
+        #bottomPlayer {
+            border: 1px solid gray;
+            /* width: 750px; */
+            /* height: 75px; */
+        }
+        #gameCanvas {
+            border: 1px solid gray;
+            /* width: 750px; */
+            /* height: 750px; */
+            /* z-index: 1; */
+        }
+        .playerSelects {
+            display: grid;
+            /* grid-template-columns: 50% 50%; */
+            grid-template-columns: 100%;
+        }
+        .container {
+            margin-top: 2rem;
+            text-align: center;
+            /* z-index: 2; */
+        }
+        .credits {
+            position: absolute;
+            left: 5rem;
+            top: 5rem;
+            z-index: -1;
+        }
+        .instructions {
+            position: absolute;
+            right: 5rem;
+            top: 5rem;
+            z-index: -1;
+        }
+        .formControl {
+            width: 20%;
+        }
+    </style>
+    <script src="quoridor.js"></script>
+</body>
+</html>
