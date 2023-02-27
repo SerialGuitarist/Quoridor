@@ -300,13 +300,28 @@ class GameState:
         return -1
 
     ## returns list of [orientation, row, col] of possible places a wall can be placed in
-    def possibleWalls(self):
+    def possibleWalls(self, distance = None):
         output = []
-        for orientation in [0, 1]:
+        if distance == None:
+            for orientation in [0, 1]:
+                for row in range(8):
+                    for col in range(8):
+                        if self.checkWall(orientation, row, col):
+                            output.append([orientation, row, col])
+        else:
+            pointsOfInterest = [(self.agents[0, 0], self.agents[0, 1]), (self.agents[1, 0], self.agents[1, 1])]
             for row in range(8):
                 for col in range(8):
-                    if self.checkWall(orientation, row, col):
-                        output.append([orientation, row, col])
+                    if self.walls[0, row, col] or self.walls[1, row, col]:
+                        pointsOfInterest.append((row, col))
+            # print(pointsOfInterest)
+            for orientation in [0, 1]:
+                for row in range(8):
+                    for col in range(8):
+                        for point in pointsOfInterest:
+                            if abs(point[0]-row)+abs(point[1]-col) <= distance and self.checkWall(orientation, row, col):
+                                output.append([orientation, row, col])
+
         return output
 
     ## useful to have the following two separetely
@@ -320,10 +335,10 @@ class GameState:
             output.append(state)
         return output
     
-    def wallStates(self):
+    def wallStates(self, distance = None):
         output = []
         if self.agents[self.turn, 2] > 0:
-            for wall in self.possibleWalls():
+            for wall in self.possibleWalls(distance=distance):
                 state = self.copy()
                 state.walls[wall[0], wall[1], wall[2]] = True
                 state.agents[state.turn, 2] -= 1
@@ -332,6 +347,6 @@ class GameState:
         return output
 
     ## returns list of possible game states from here
-    def possibleGameStates(self):
-        return self.moveStates() + self.wallStates()
+    def possibleGameStates(self, distance=None):
+        return self.moveStates() + self.wallStates(distance=distance)
 

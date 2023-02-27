@@ -3,6 +3,7 @@ import time
 
 from gameState import GameState
 from agent import *
+from minimaxProcessing import MinimaxProcessing
 from node import Node
 
 # class box:
@@ -146,8 +147,11 @@ def printBoard(state, possibleMoves = False):
 # state = GameState.newGame()
 # white = Random(delay=0.5)
 # black = Random(delay=0.5)
-white = Minimax()
-black = Random(delay=0.5)
+white = MinimaxProcessing(processCount=12, depth=3, distance=1)
+black = MinimaxProcessing(processCount=12, depth=2, distance=3)
+# black = Random(delay=0.5)
+# white = Minimax()
+# black = Minimax()
 
 while True:
     # if isinstance(white, Human):
