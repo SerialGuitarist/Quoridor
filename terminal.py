@@ -51,16 +51,6 @@ class colors:
     black = 5
     white = 4
 
-# walls = np.full((2, 8, 8), False)
-# walls[0, 0, 0] = True
-# walls[0, 2, 0] = True
-# walls[0, 2, 1] = True
-# # walls[0, 0, 1] = True
-# walls[1, 5, 5] = True
-# walls[1, 3, 1] = True
-# state = GameState(walls, np.array([[8, 4, 10], [0, 4, 10]]))
-state = GameState.newGame()
-
 def printGameState(state, possibleMoves = False):
     printWalls(state.agents[1,2])
     printBoard(state, possibleMoves)
@@ -144,11 +134,13 @@ def printBoard(state, possibleMoves = False):
                 print(box[arrCol], end="")
         print()
 
-# state = GameState.newGame()
+state = GameState.newGame()
 # white = Random(delay=0.5)
 # black = Random(delay=0.5)
-white = MinimaxProcessing(processCount=12, depth=3, distance=1)
-black = MinimaxProcessing(processCount=12, depth=2, distance=3)
+white = MinimaxProcessing()
+black = MinimaxProcessing()
+# black = MinimaxProcessing(processCount=12, depth=2, distance=3)
+# black = Human()
 # black = Random(delay=0.5)
 # white = Minimax()
 # black = Minimax()
@@ -168,8 +160,3 @@ while True:
 
 printGameState(state)
 
-# for move in state.possibleMoves()[0].possibleMoves():
-    # print(move.agents)
-    # print(move.turn)
-
-# printGameState(state, 2, 1, 7, 6)

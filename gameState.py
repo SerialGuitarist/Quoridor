@@ -1,5 +1,6 @@
 import numpy as np
 import heapq
+from collections import deque
 
 from node import Node
 
@@ -250,9 +251,35 @@ class GameState:
     ## does the current player have a valid path to their destination?
     def hasValidPath(self, turn = None):
         turn = self.turn if turn == None else turn
-        # print(f"===========TURN: {turn}")
-        # print(self.shortestPath(turn))
-        return len(self.shortestPath(turn)) > 0
+        queue = deque()
+        targetRow = 8 if self.turn else 0
+        queue.append((self.agents[turn, 0], self.agents[turn, 1]))
+        checkedNodes = np.full((9,9), False)
+        try:
+            while True:
+                node = queue.popleft()
+                checkedNodes[node[0], node[1]] = True
+                if node[0] == targetRow:
+                    return True
+                if self.checkUp(node[0], node[1]) and not checkedNodes[node[0]-1, node[1]]:
+                    queue.append((node[0]-1, node[1]))
+                if self.checkDown(node[0], node[1]) and not checkedNodes[node[0]+1, node[1]]:
+                    queue.append((node[0]+1, node[1]))
+                if self.checkLeft(node[0], node[1]) and not checkedNodes[node[0], node[1]-1]:
+                    queue.append((node[0], node[1]-1))
+                if self.checkRight(node[0], node[1]) and not checkedNodes[node[0], node[1]+1]:
+                    queue.append((node[0], node[1]+1))
+        except:
+            return False
+
+
+    ## Deprecated
+    ## new implementatin through BFS is O(n^2) instead of O(n^3) of A*
+    # def hasValidPath(self, turn = None):
+        # turn = self.turn if turn == None else turn
+        # # print(f"===========TURN: {turn}")
+        # # print(self.shortestPath(turn))
+        # return len(self.shortestPath(turn)) > 0
 
     ## can you put a wall there?
     def checkWall(self, orientation, row, col):
@@ -300,6 +327,8 @@ class GameState:
         return -1
 
     ## returns list of [orientation, row, col] of possible places a wall can be placed in
+    ## giving a natural number value to distance only considers putting walls 
+    ## within that distance from an existing wall or either player
     def possibleWalls(self, distance = None):
         output = []
         if distance == None:

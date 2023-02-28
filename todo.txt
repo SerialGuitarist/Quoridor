@@ -1,4 +1,3 @@
 
-- minimax agent
 - reinforcement learning agent
 - montecarlo agent?

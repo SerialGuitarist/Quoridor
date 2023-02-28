@@ -29,16 +29,9 @@ class MinimaxProcessing(Agent):
         ## multi processing magic here
         ## take that, global interpreter lock!
         with Pool(self.processCount) as p:
-            try:
-                bests = p.map(self.run, partitions)
-                best = max(bests, key=lambda x: x[1]) if state.turn else min(bests, key=lambda x: x[1])
-                return best[0]
-            except:
-                print(f"k: {k}")
-                print(f"n: {n}")
-                print(f"N: {len(states)}")
-                print(partitions)
-                raise Exception("psyche")
+            bests = p.map(self.run, partitions)
+            best = max(bests, key=lambda x: x[1]) if state.turn else min(bests, key=lambda x: x[1])
+            return best[0]
 
     def run(self, states):
         bestScore = None
