@@ -137,12 +137,12 @@ def printBoard(state, possibleMoves = False):
 state = GameState.newGame()
 # white = Random(delay=0.5)
 # black = Random(delay=0.5)
-white = MinimaxProcessing()
-black = MinimaxProcessing()
+# white = MinimaxProcessing()
+# black = MinimaxProcessing()
 # black = MinimaxProcessing(processCount=12, depth=2, distance=3)
-# black = Human()
+white = Human()
+black = Human()
 # black = Random(delay=0.5)
-# white = Minimax()
 # black = Minimax()
 
 while True:
@@ -160,3 +160,17 @@ while True:
 
 printGameState(state)
 
+# 
+# def minimaxVsMinimax():
+    # state = GameState.newGame()
+    # agent = Minimax()
+    # while True:
+        # printGameState(state, True)
+        # state = agent.shoot(state)
+        # if state.checkVictory() >= 0:
+            # break
+    # printGameState(state, True)
+# 
+# import cProfile
+# cProfile.run('minimaxVsMinimax()')
+# 

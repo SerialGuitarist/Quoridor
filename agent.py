@@ -9,9 +9,6 @@ from multiprocessing import Pool
 from gameState import GameState
 
 class Agent:
-    ## white is a boolean denoting whether the agent is white or not
-    # def __init__(self, white):
-        # self.white = white
     pass
 
 class Human(Agent):

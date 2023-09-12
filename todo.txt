@@ -1,3 +1,4 @@
 
+- fix code duplication in hasValidPath and possible_coords (refer to what chatGPT suggested)
 - reinforcement learning agent
 - montecarlo agent?

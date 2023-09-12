@@ -350,6 +350,7 @@ class GameState:
                         for point in pointsOfInterest:
                             if abs(point[0]-row)+abs(point[1]-col) <= distance and self.checkWall(orientation, row, col):
                                 output.append([orientation, row, col])
+                                break
 
         return output
 
