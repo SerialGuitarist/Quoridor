@@ -13,6 +13,7 @@ class GameState:
         ## agents[1][1] is white x coord (col)
         ## agents[1][2] is walls white has left
         ## and vice versa
+    ## turn is 0 for black and 1 for white (starts with white)
     def __init__(self, walls, agents, turn = 1):
         self.walls = walls
         self.agents = agents
@@ -32,11 +33,15 @@ class GameState:
     @classmethod
     def newGame(state):
         return GameState(np.full((2, 8, 8), False), np.array([[8, 4, 10], [0, 4, 10]]))
+        sample = GameState(np.full((2, 8, 8), False), np.array([[5, 3, 6], [3, 6, 8]]))
+        sample.walls[1, 1, 1] = True
+        sample.walls[0, 4, 1] = True
+        return sample
 
     def passTurn(self):
         self.turn = 1 - self.turn
 
-    ## some helpers for the pathfinding
+    #### some helpers for the pathfinding
     ## start is np.array([row, col])
     # def checkLeft(self, start):
     def checkUp(self, row, col):
@@ -165,6 +170,7 @@ class GameState:
     ## returns a list of [row, col] for the shortest path
     ## including the start and end nodes
     ## returns empyy array if no path is found
+    ## A* search
     def shortestPathBetweenNodes(self, startRow, startCol, endRow, endCol):
         toCheck = []
         ## keeps track of both whether we've checked the node
@@ -205,6 +211,9 @@ class GameState:
         return []
 
     ## returns list of [row, col] for the shortest path to victory for current player
+    ## modified version of shortestPathBetweenNodes but instead of checking for
+    ## specific coordinates matching, just checks for the row index instead
+    ## as you win in Quoridor by reaching the opposite row
     def shortestPath(self, turn = None):
         turn = self.turn if turn == None else turn
         toCheck = []
@@ -249,6 +258,7 @@ class GameState:
         return []
 
     ## does the current player have a valid path to their destination?
+    ## simple breadth first search
     def hasValidPath(self, turn = None):
         turn = self.turn if turn == None else turn
         queue = deque()
@@ -355,6 +365,10 @@ class GameState:
         return output
 
     ## useful to have the following two separetely
+    ## eg. random agent picking moves at random almost always picks
+    ##      a move to place down a wall since that's what the most
+    ##      of the possible moves are, so by getting these separately
+    ##      the random agent can weight them equally
     def moveStates(self):
         output = []
         for move in self.possibleMoves():
@@ -380,3 +394,20 @@ class GameState:
     def possibleGameStates(self, distance=None):
         return self.moveStates() + self.wallStates(distance=distance)
 
+    ## converts to and from json serializable form
+    def toSerial(self):
+        jsonState = {
+            "walls": self.walls.tolist(),
+            "agents": self.agents.tolist(),
+            "turn": self.turn
+        }
+        return jsonState
+    
+
+    @classmethod
+    def fromSerial(state):
+        return GameState(
+            np.array(state["walls"]),
+            np.array(state["agents"]),
+            state["turn"]
+        )

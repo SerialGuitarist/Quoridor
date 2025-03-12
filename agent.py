@@ -75,7 +75,7 @@ class Random(Agent):
         return random.choice(state.moveStates())
 
 class Minimax(Agent):
-    def __init__(self, depth = 2, distance = 3):
+    def __init__(self, depth = 2, distance = None):
         self.depth = depth
         self.distance = distance
 

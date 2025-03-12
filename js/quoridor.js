@@ -286,28 +286,6 @@ class Agent {
 	// 
 }
 
-class GameState {
-	// template is a game state
-	// if given, this gamestate copies it over
-	constructor(template = null) {
-		if (tempalte != null) {
-
-		}
-		var walls = {
-			hor: [],
-			ver: []
-		},
-	}
-
-	// copy from a given state
-	// provide list of possible game states
-	// 		provide list of possible move states
-	// 		provide list of possible wall states
-	// 
-
-}
-
-
 
 function initializeWalls() {
     walls = {
@@ -975,3 +953,18 @@ function bottomBottom(col, row, text) {
 
 
 
+function postData(input) {
+    $.ajax({
+        type: "POST",
+        url: "/reverse_pca.py",
+        data: { param: input },
+        success: callbackFunc
+    });
+}
+
+function callbackFunc(response) {
+    // do something with the response
+    console.log(response);
+}
+
+postData('data to process');
