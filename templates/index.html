@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Quoridor</title>
+    <meta charset="utf-8" />
+    <style>
+		.credits {
+			position: absolute;
+			left: 5rem;
+			top: 1rem;
+			z-index: -1;
+		}
+      body { margin: auto; width: 40%; font-family: sans-serif; }
+      #topPlayer, #bottomPlayer, #gameCanvas { border: 1px solid gray; display:block; margin: 0 auto; }
+	  .playerSelects {
+		  display: flex;
+		  justify-content: center;
+		  gap: 1rem;
+		}
+      .container { margin-top: 2rem; text-align: center; }
+      .bar { display:flex; justify-content:right; gap:1rem; align-items:center; }
+      .small { font-size: 0.9rem; color:#555; }
+      fieldset { border:1px solid #ccc; padding:.5rem 1rem; }
+    </style>
+  </head>
+
+  <body>
+	  <div class="credits">
+    <h1 style="text-align:center">Quoridor</h1>
+
+    <div class="playerSelects">
+      <fieldset>
+        <legend><strong>White Player</strong></legend>
+        <label><input id="selectWhiteHuman"   type="radio" name="white" value="human" checked> Human</label><br/>
+        <label><input id="selectWhiteRandom" type="radio" name="white" value="random"> Random</label><br/>
+		<label><input id="selectWhiteMinimax" type="radio" name="white" value="minimax"> Minimax</label>  <br>
+			<input id="whiteMinimaxDepth" style="width:2rem" value="1" type="number"> steps
+		<br/>
+        <label><input id="selectWhiteReinforcement" type="radio" name="white" value="reinforcement"> Reinforcement</label>
+      </fieldset>
+
+      <fieldset>
+        <legend><strong>Black Player</strong></legend>
+        <label><input id="selectBlackHuman"   type="radio" name="black" value="human" checked> Human</label><br/>
+        <label><input id="selectBlackRandom"      type="radio" name="black" value="random"> Random</label><br/>
+        <label><input id="selectBlackMinimax"      type="radio" name="black" value="minimax"> Minimax</label><br/>
+        <label><input id="selectBlackReinforcement"      type="radio" name="black" value="reinforcement"> Reinforcement</label>
+      </fieldset>
+    </div>
+	<br>
+    <div class="bar">
+      <button id="newGameButton">New Game</button>
+      <button id="flipButton">Flip Board</button>
+      <button id="mirrorButton">Mirror Board</button>
+    </div>
+	<br>
+    <div class="bar">
+      <button id="stepButton">Step</button>
+	  <input id="autoStep" type="checkbox"> <label>Auto step</label>
+    </div>
+	<br>
+    <div class="bar">
+      <div id="status" class="small" style="text-align:center;"></div>
+    </div>
+
+  </div>
+
+    <div class="container">
+      <canvas id="topPlayer"    width="830" height="75"></canvas>
+      <canvas id="gameCanvas"   width="830" height="830"></canvas>
+      <canvas id="bottomPlayer" width="830" height="75"></canvas>
+    </div>
+
+    <script src="{{ url_for('static', filename='quoridor.js') }}"></script>
+  </body>
+</html>
+
+

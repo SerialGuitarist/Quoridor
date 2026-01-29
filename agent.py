@@ -7,10 +7,15 @@ from math import ceil
 from multiprocessing import Pool
 
 from gameState import GameState
+from terminalUtils import *
 
 class Agent:
     pass
 
+## fix this later
+## human implementation needs to be really general
+## and bulk of it actually implemented in the frontend
+## whether that be the terminal or the html implementation
 class Human(Agent):
     ## returns a valid gamestate ##
     def shoot(self, state):
@@ -19,6 +24,16 @@ class Human(Agent):
         print("Human player move: " + ("white" if state.turn else "black"))
         print("Format: [vhm][0-8][0-8]")
         command = input("Input: ")
+        if command == "save":
+            print(state.toSerial())
+            printGameState(state)
+        elif command == "flip":
+            state.flip()
+            printGameState(state)
+        elif command == "mirror":
+            state.mirror()
+            printGameState(state)
+
         if not re.match(r'[vhm][0-9][0-9]', command):
             print("Not a valid command")
             ## i feel dirty doing this
@@ -67,17 +82,18 @@ class Random(Agent):
 
     def shoot(self, state):
         time.sleep(self.delay)
-        if state.agents[state.turn, 2] > 0:
+        moveStates = state.moveStates()
+        wallStates = state.wallStates()
+        if state.agents[state.turn, 2] > 0 and len(wallStates) > 0:
             if random.getrandbits(1):
-                return random.choice(state.moveStates())
+                return random.choice(wallStates)
             else:
-                return random.choice(state.wallStates())
+                return random.choice(moveStates)
         return random.choice(state.moveStates())
 
 class Minimax(Agent):
-    def __init__(self, depth = 2, distance = None):
+    def __init__(self, depth = 1):
         self.depth = depth
-        self.distance = distance
 
     def shoot(self, state):
         bestMove = None
@@ -85,9 +101,9 @@ class Minimax(Agent):
         if state.turn:
             ## maximizing
             bestScore = -np.inf
-            children = state.possibleGameStates(distance=self.distance)
+            children = state.possibleGameStates()
             for i, child in enumerate(children):
-                print(f"Maximizing: child {i} / {len(children)}", end="\r")
+                # print(f"Maximizing: child {i} / {len(children)}", end="\r")
                 score = self.minimax(child, 1)
                 if score > bestScore:
                     bestScore = score
@@ -95,15 +111,15 @@ class Minimax(Agent):
         else:
             ## minimizing
             bestScore = np.inf
-            children = state.possibleGameStates(distance=self.distance)
+            children = state.possibleGameStates()
             for i, child in enumerate(children):
-                print(f"Minimizing: child {i} / {len(children)}", end="\r")
+                # print(f"Minimizing: child {i} / {len(children)}", end="\r")
                 score = self.minimax(child, 1)
                 if score < bestScore:
                     bestScore = score
                     bestMove = child
         return bestMove
-    
+
     def minimax(self, state, depth, alpha = -np.inf, beta = np.inf):
         if depth == self.depth:
             return self.score(state)
@@ -149,7 +165,7 @@ class MinimaxThreading(Agent):
             self.states = states
             self.maximizing = maximizing
             self.minimax = minimax
-        
+
         def run(self):
             if self.maximizing:
                 self.bestScore = -np.inf
@@ -182,7 +198,7 @@ class MinimaxThreading(Agent):
         best = max(threads, key=lambda x: x.bestScore) if state.turn else min(threads, key=lambda x: x.bestScore)
         return best.bestMove
 
-    
+
     def minimax(self, state, depth, alpha = -np.inf, beta = np.inf):
         if depth == self.depth:
             return self.score(state)
@@ -211,4 +227,50 @@ class MinimaxThreading(Agent):
     def score(self, state):
         return len(state.shortestPath(0)) - len(state.shortestPath(1))
 
+## quick and dirty implementation
+## but it works for now, i think
+class HumanWeb(Agent):
+    ## returns a valid gamestate ##
+    def shoot(self, state, command):
+        print(command)
+        if command == "flip":
+            state.flip()
+            return state
+        elif command == "mirror":
+            state.mirror()
+            return state
+
+        act = command[0]
+        row = int(command[1])
+        col = int(command[2])
+
+        if act == 'v' or act == 'h':
+            if state.agents[state.turn, 2] == 0:
+                raise ValueError("Not enough walls")
+            if not state.checkWall(0 if act == 'v' else 1, row, col):
+                raise ValueError("Can't put wall there")
+        else:
+            if not self.searchMove(row, col, state.possibleMoves()):
+                raise ValueError("Can't move there")
+
+        newState = state.copy()
+        if act == 'v':
+            newState.walls[0, row, col] = True
+            newState.agents[newState.turn, 2] -= 1
+        elif act == 'h':
+            newState.walls[1, row, col] = True
+            newState.agents[newState.turn, 2] -= 1
+        else:
+            newState.agents[newState.turn, 0] = row
+            newState.agents[newState.turn, 1] = col
+
+        newState.passTurn()
+        return newState
+
+    ## used to determine if the provided move is legal
+    def searchMove(self, row, col, listOfMoves):
+        for move in listOfMoves:
+            if move[0] == row and move[1] == col:
+                return True
+        return False
 

@@ -1,6 +1,7 @@
 import numpy as np
 import heapq
 from collections import deque
+import json
 
 from node import Node
 
@@ -14,15 +15,16 @@ class GameState:
         ## agents[1][2] is walls white has left
         ## and vice versa
     ## turn is 0 for black and 1 for white (starts with white)
-    def __init__(self, walls, agents, turn = 1):
+    def __init__(self, walls, agents, turn=1, shortestPath=[[], []]):
         self.walls = walls
         self.agents = agents
         self.turn = turn ## is it white's turn?
+        self.shortestPathCache = shortestPath
 
     ## returns np.array of the possible game states reachable
     ## with a single move from this gamestate
-    def possibleStates(self):
-        return np.array([])
+    # def possibleStates(self):
+        # return np.array([])
 
     def __eq__(self, state):
         return np.array_equal(self.walls, state.walls) and np.array_equal(self.agents, state.agents) and self.turn == state.turn
@@ -33,10 +35,10 @@ class GameState:
     @classmethod
     def newGame(state):
         return GameState(np.full((2, 8, 8), False), np.array([[8, 4, 10], [0, 4, 10]]))
-        sample = GameState(np.full((2, 8, 8), False), np.array([[5, 3, 6], [3, 6, 8]]))
-        sample.walls[1, 1, 1] = True
-        sample.walls[0, 4, 1] = True
-        return sample
+        # sample = GameState(np.full((2, 8, 8), False), np.array([[5, 3, 6], [3, 6, 8]]))
+        # sample.walls[1, 1, 1] = True
+        # sample.walls[0, 4, 1] = True
+        # return sample
 
     def passTurn(self):
         self.turn = 1 - self.turn
@@ -98,7 +100,7 @@ class GameState:
                 output.append([row-1, col])
 
         #### down ####
-        if  self.checkDown(row, col):  
+        if  self.checkDown(row, col):
             # blocked by opponent
             if oppCol == col and oppRow == row + 1:
                 output += self.possibleMovesOver(1);
@@ -106,7 +108,7 @@ class GameState:
                 output.append([row+1, col])
 
         #### left ####
-        if  self.checkLeft(row, col):     
+        if  self.checkLeft(row, col):
             # blocked by opponent
             if oppCol == col - 1 and oppRow == row:
                 output += self.possibleMovesOver(2);
@@ -140,11 +142,11 @@ class GameState:
             output.append([row-1, col])
 
         #### down ####
-        if  pos != 0 and self.checkDown(row, col):  
+        if  pos != 0 and self.checkDown(row, col):
             output.append([row+1, col])
 
         #### left ####
-        if  pos != 3 and self.checkLeft(row, col):     
+        if  pos != 3 and self.checkLeft(row, col):
             output.append([row, col-1])
 
         #### right ####
@@ -195,7 +197,7 @@ class GameState:
                 path = [lowest[endRow][endCol]]
                 while path[-1].parent:
                     path.append(path[-1].parent)
-                
+
                 return [[node.row, node.col] for node in path[::-1]]
 
             for neighbor in self.possibleNodes(current.row, current.col):
@@ -206,7 +208,7 @@ class GameState:
                     heapq.heappush(toCheck, node)
                 elif lowest[node.row][node.col].fromStart > node.fromStart:
                     ## then we've found a beter path to reach here
-                    lowest[node.row][node.col] = node                 
+                    lowest[node.row][node.col] = node
 
         return []
 
@@ -216,18 +218,15 @@ class GameState:
     ## as you win in Quoridor by reaching the opposite row
     def shortestPath(self, turn = None):
         turn = self.turn if turn == None else turn
+        if self.shortestPathCache[turn]:
+            return self.shortestPathCache[turn]
         toCheck = []
         startRow = self.agents[turn, 0]
         startCol = self.agents[turn, 1]
         endRow = 8 if turn else 0
         ## keeps track of both whether we've checked the node
         ## and the lowest gScore to get there
-        lowest = []
-        for i in range(9):
-            temp = []
-            for j in range(9):
-                temp.append(None)
-            lowest.append(temp)
+        lowest = np.full((9, 9), None, dtype=object)
 
         heapq.heapify(toCheck)
         heapq.heappush(toCheck,Node(startRow, startCol, 0, abs(endRow-startRow)))
@@ -242,8 +241,9 @@ class GameState:
                 path = [lowest[current.row][current.col]]
                 while path[-1].parent:
                     path.append(path[-1].parent)
-                
-                return [[node.row, node.col] for node in path[::-1]]
+
+                self.shortestPathCache[turn] = [[node.row, node.col] for node in path[::-1]]
+                return self.shortestPathCache[turn]
 
             for neighbor in self.possibleNodes(current.row, current.col):
                 node = Node(neighbor[0], neighbor[1], current.fromStart+1, abs(endRow-neighbor[0]), current)
@@ -253,16 +253,17 @@ class GameState:
                     heapq.heappush(toCheck, node)
                 elif lowest[node.row][node.col].fromStart > node.fromStart:
                     ## then we've found a beter path to reach here
-                    lowest[node.row][node.col] = node                 
+                    lowest[node.row][node.col] = node
 
-        return []
+        self.shortestPathCache[turn] = []
+        return self.shortestPathCache[turn]
 
     ## does the current player have a valid path to their destination?
     ## simple breadth first search
     def hasValidPath(self, turn = None):
         turn = self.turn if turn == None else turn
         queue = deque()
-        targetRow = 8 if self.turn else 0
+        targetRow = 8 if turn else 0
         queue.append((self.agents[turn, 0], self.agents[turn, 1]))
         checkedNodes = np.full((9,9), False)
         try:
@@ -321,9 +322,19 @@ class GameState:
 
         ## if no walls are blocking, try putting it there and see if
         ## blocks the path of either players
-        self.walls[orientation, row, col] = True
-        output = self.hasValidPath(0) and self.hasValidPath(1)
-        self.walls[orientation, row, col] = False
+        ## no idea why this isn't working
+        ## but seems to work better when this check happens after
+        ## creating the new copied state
+        ## check has been moved over to wallStates method, right
+        ## before appending the thing to the final output
+        # self.walls[orientation, row, col] = True
+        # output = self.hasValidPath(0) and self.hasValidPath(1)
+        # self.walls[orientation, row, col] = False
+        # return output
+        test = self.copy()
+        test.walls[orientation, row, col] = True
+        output = test.hasValidPath(0) and test.hasValidPath(1)
+        test.walls[orientation, row, col] = False
         return output
 
     ## -1 if no one has won
@@ -336,32 +347,16 @@ class GameState:
             return 1
         return -1
 
-    ## returns list of [orientation, row, col] of possible places a wall can be placed in
-    ## giving a natural number value to distance only considers putting walls 
-    ## within that distance from an existing wall or either player
-    def possibleWalls(self, distance = None):
+    ## returns list of [orientation, row, col] of possible
+    ## places a wall can be placed in
+    ## does not check if the wall will block players
+    def possibleWalls(self):
         output = []
-        if distance == None:
-            for orientation in [0, 1]:
-                for row in range(8):
-                    for col in range(8):
-                        if self.checkWall(orientation, row, col):
-                            output.append([orientation, row, col])
-        else:
-            pointsOfInterest = [(self.agents[0, 0], self.agents[0, 1]), (self.agents[1, 0], self.agents[1, 1])]
+        for orientation in [0, 1]:
             for row in range(8):
                 for col in range(8):
-                    if self.walls[0, row, col] or self.walls[1, row, col]:
-                        pointsOfInterest.append((row, col))
-            # print(pointsOfInterest)
-            for orientation in [0, 1]:
-                for row in range(8):
-                    for col in range(8):
-                        for point in pointsOfInterest:
-                            if abs(point[0]-row)+abs(point[1]-col) <= distance and self.checkWall(orientation, row, col):
-                                output.append([orientation, row, col])
-                                break
-
+                    if self.checkWall(orientation, row, col):
+                        output.append([orientation, row, col])
         return output
 
     ## useful to have the following two separetely
@@ -378,36 +373,61 @@ class GameState:
             state.passTurn()
             output.append(state)
         return output
-    
-    def wallStates(self, distance = None):
+
+    ## if the current player has walls remaining
+    ## takes the output of possibleWalls: list of [orientation, row, col]
+    ## and turns each of those into a gameState
+    def wallStates(self):
         output = []
         if self.agents[self.turn, 2] > 0:
-            for wall in self.possibleWalls(distance=distance):
+            for wall in self.possibleWalls():
                 state = self.copy()
                 state.walls[wall[0], wall[1], wall[2]] = True
                 state.agents[state.turn, 2] -= 1
                 state.passTurn()
+                # if state.hasValidPath(0) and state.hasValidPath(1):
                 output.append(state)
-        return output
+        return list(filter(lambda s: s.hasValidPath(0) and s.hasValidPath(1), output))
 
     ## returns list of possible game states from here
-    def possibleGameStates(self, distance=None):
-        return self.moveStates() + self.wallStates(distance=distance)
+    def possibleGameStates(self):
+        return self.moveStates() + self.wallStates()
 
     ## converts to and from json serializable form
     def toSerial(self):
         jsonState = {
             "walls": self.walls.tolist(),
             "agents": self.agents.tolist(),
-            "turn": self.turn
+            "turn": self.turn,
+            # "shortestPath": self.shortestPath,
         }
-        return jsonState
-    
+        return json.dumps(jsonState)
+
 
     @classmethod
-    def fromSerial(state):
+    def fromSerial(self, string):
+        state = json.loads(string)
         return GameState(
-            np.array(state["walls"]),
-            np.array(state["agents"]),
-            state["turn"]
+            walls=np.array(state["walls"]),
+            agents=np.array(state["agents"]),
+            turn=state["turn"],
+            # shortestPath=state["shortestPath"]
         )
+
+    ## swaps the positions of black and white
+    def flip(self):
+        self.walls = np.flip(self.walls, axis=1)
+        self.agents = np.flip(self.agents, axis=0)
+        self.agents[0, 0] = 8 - self.agents[0, 0]
+        self.agents[1, 0] = 8 - self.agents[1, 0]
+        self.turn = 1 - self.turn
+        self.shortestPathCache = [None, None]
+
+    ## mirrors the board horizontally as if seen
+    ## through a mirror
+    def mirror(self):
+        self.walls = np.flip(self.walls, axis=2)
+        self.agents[0, 1] = 8 - self.agents[0, 1]
+        self.agents[1, 1] = 8 - self.agents[1, 1]
+        self.shortestPathCache = [None, None]
+
