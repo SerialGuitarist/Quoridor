@@ -13,6 +13,9 @@ import json
 from gameState import GameState
 from agent import Agent
 
+MODELS_DIR = "models"
+os.makedirs(MODELS_DIR, exist_ok=True)
+
 ## Get cpu, gpu or mps device for training.
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using {device} device")
@@ -437,21 +440,27 @@ class ScoringAgent(Agent):
                 with open(self.losses_path, "a") as f:
                     f.write(f"{loss_history}\n")
 
-    def save(self, path=None):
-        if path==None:
-            path = self.path
+    def save(self, path=None, epoch=None):
+        if path is None:
+            if epoch is not None:
+                path = os.path.join(MODELS_DIR, f"model_epoch_{epoch}.pth")
+            else:
+                path = os.path.join(MODELS_DIR, "latest.pth")
+
         torch.save({
             "model_state_dict": self.model.state_dict(),
             "optimizer_state_dict": self.optimizer.state_dict()
-        }, self.path)
+        }, path)
+
         print("Model saved to", path)
 
     def load(self, path=None):
-        if path==None:
-            path = self.path
+        if path is None:
+            path = os.path.join(MODELS_DIR, "latest.pth")
+
         if os.path.exists(path):
             print("Loading saved model from", path)
-            checkpoint = torch.load(self.path, map_location=device)
+            checkpoint = torch.load(path, map_location=device)
             self.model.load_state_dict(checkpoint["model_state_dict"])
             self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
             print("Model loaded")
