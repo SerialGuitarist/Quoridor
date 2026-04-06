@@ -387,7 +387,8 @@ class GameState:
                 state.passTurn()
                 # if state.hasValidPath(0) and state.hasValidPath(1):
                 output.append(state)
-        return list(filter(lambda s: s.hasValidPath(0) and s.hasValidPath(1), output))
+        # return list(filter(lambda s: s.hasValidPath(0) and s.hasValidPath(1), output))
+        return output
 
     ## returns list of possible game states from here
     def possibleGameStates(self):
